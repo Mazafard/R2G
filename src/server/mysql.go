@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"database/sql"
@@ -44,7 +44,7 @@ func (dbmap *MysqlDbMap) GetTables() map[string]*Table {
 	dbmap.Tables = make(map[string]*Table)
 	dbmap.GetConnection().Select(&tables, "SHOW TABLES")
 	for _, table := range tables {
-		dbmap.Tables[table] = &Table{dbmap:dbmap, name:table}
+		dbmap.Tables[table] = &Table{dbmap:dbmap, Name:table}
 	}
 
 	return dbmap.Tables
@@ -57,7 +57,7 @@ func (dbmap *MysqlDbMap) GetTableColumns(table *Table) ColumnList {
 	}
 
 	table.columns = ColumnList{}
-	dbmap.GetConnection().Select(&table.columns, "SHOW columns FROM " + table.name)
+	dbmap.GetConnection().Select(&table.columns, "SHOW columns FROM " + table.Name)
 
 	foreign_keys := table.GetForeignKeys()
 
@@ -79,7 +79,7 @@ func (dbmap *MysqlDbMap) GetTableForeignKeys(table *Table) ForeignKeyList {
 	dbmap.GetConnection().Select(&foreign_keys, "SELECT TABLE_NAME `TableName`,COLUMN_NAME `ColumnName`," +
 		"CONSTRAINT_NAME `ConstraintName`,REFERENCED_TABLE_NAME `ReferenceTableName`," +
 		"REFERENCED_COLUMN_NAME `ReferenceColumnName` FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE " +
-		"WHERE TABLE_NAME = '" + table.name + "' AND TABLE_SCHEMA = '" + dbmap.DbName + "'" +
+		"WHERE TABLE_NAME = '" + table.Name+ "' AND TABLE_SCHEMA = '" + dbmap.DbName + "'" +
 		"AND REFERENCED_TABLE_NAME IS NOT Null")
 
 	for _, foreign_key := range foreign_keys {
@@ -92,7 +92,7 @@ func (dbmap *MysqlDbMap) GetTableForeignKeys(table *Table) ForeignKeyList {
 
 func (dbmap *MysqlDbMap) GetRows(table *Table, where string, limit int, offset int) []map[string]string {
 
-	query := "SELECT * FROM `" + table.name + "` "
+	query := "SELECT * FROM `" + table.Name + "` "
 	if where != "" {
 		query += "WHERE " + where
 	}
@@ -133,7 +133,7 @@ func (dbmap *MysqlDbMap) GetRows(table *Table, where string, limit int, offset i
 }
 
 func (dbmap *MysqlDbMap) GetRowsCount(table *Table) int64 {
-	count, _ := dbmap.Conn.SelectInt("SELECT Count(*) FROM `" + table.name + "`")
+	count, _ := dbmap.Conn.SelectInt("SELECT Count(*) FROM `" + table.Name + "`")
 	return count
 }
 
@@ -141,8 +141,8 @@ func (dbmap *MysqlDbMap) GetRowsCount(table *Table) int64 {
 
 type Table struct {
 	dbmap       *MysqlDbMap
-	name        string
-	foreignKeys ForeignKeyList
+	Name        string
+	ForeignKeys ForeignKeyList
 	columns     ColumnList
 }
 
@@ -151,10 +151,10 @@ func (table *Table) GetColumns() ColumnList {
 }
 
 func (table *Table) GetForeignKeys() ForeignKeyList {
-	if table.foreignKeys == nil {
-		table.foreignKeys = table.dbmap.GetTableForeignKeys(table)
+	if table.ForeignKeys == nil {
+		table.ForeignKeys = table.dbmap.GetTableForeignKeys(table)
 	}
-	return table.foreignKeys
+	return table.ForeignKeys
 }
 
 func (table *Table) GetRows(limit int, offset int) []map[string]string {
@@ -169,7 +169,7 @@ func (table *Table) GetFilteredRows(where string, limit int, offset int) []map[s
 	return table.dbmap.GetRows(table, where, limit, offset)
 }
 
-func (table *Table) getPaginated(limit int) *Paginate {
+func (table *Table) GetPaginated(limit int) *Paginate {
 	return NewPaginated(int(table.GetRowsCount()), limit)
 }
 
@@ -273,7 +273,7 @@ func (paginated *Paginate) Next() bool {
 	return true
 }
 
-func (paginated *Paginate) getLimitOffset() (int, int) {
+func (paginated *Paginate) GetLimitOffset() (int, int) {
 	if paginated.CurrentPage == 0 {
 		panic("you must call next iterable !")
 	}

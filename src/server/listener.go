@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"os"
 	"bufio"
+
 )
 
 func RunCommand(db *DbMap) {
@@ -130,7 +131,7 @@ type DatabaseChange struct {
 
 func handelData(data string, db *DbMap) {
 	databaseChange := DatabaseChange{}
-	if (DEBUG) {
+	if SystemConfig.Debug {
 		fmt.Println(data)
 	}
 	err := json.Unmarshal([]byte(data), &databaseChange)
@@ -144,7 +145,7 @@ func handelData(data string, db *DbMap) {
 		return
 	}
 
-	if stringInSlice(databaseChange.Table, SystemConfig.SkipTables) {
+	if StringInSlice(databaseChange.Table, SystemConfig.SkipTables) {
 		return
 	}
 
@@ -164,7 +165,7 @@ func handelData(data string, db *DbMap) {
 		break
 	}
 
-	if (DEBUG) {
+	if SystemConfig.Debug {
 		fmt.Println(query)
 	}
 	_, err = db.Graph.Conn.ExecNeo(query, make(map[string]interface{}))
@@ -196,19 +197,19 @@ func (databaseChange *DatabaseChange) updateQuery() string {
 	label := "nod"
 
 	if tableConfig.IsManyToMany {
-		if len(databaseChange.TableStructure.foreignKeys) != 2 {
+		if len(databaseChange.TableStructure.ForeignKeys) != 2 {
 			panic("ManyToMany tabels must has been only 2 foreign key !")
 		}
 
 		properties := databaseChange.GenerateProperties()
 		sets, property := databaseChange.TableStructure.GetSetAndProperty(label, properties)
 
-		table_from := databaseChange.TableStructure.foreignKeys[0]
+		table_from := databaseChange.TableStructure.ForeignKeys[0]
 		label_from := "nod" + RandStringRunes(5)
 		rows_from := table_from.ReferenceTable.GetFilteredRows(table_from.ReferenceColumnName + "='" + properties[table_from.ColumnName] + "'", -1, -1)
 		node_from := MergeQuery(label_from, table_from.ReferenceTable, rows_from[0], false)
 
-		table_to := databaseChange.TableStructure.foreignKeys[1]
+		table_to := databaseChange.TableStructure.ForeignKeys[1]
 		label_to := "nod" + RandStringRunes(5)
 		rows_to := table_to.ReferenceTable.GetFilteredRows(table_to.ReferenceColumnName + "='" + properties[table_to.ColumnName] + "'", -1, -1)
 		node_to := MergeQuery(label_to, table_to.ReferenceTable, rows_to[0], false)
@@ -217,7 +218,7 @@ func (databaseChange *DatabaseChange) updateQuery() string {
 		for k := range databaseChange.Old {
 			updated_keys = append(updated_keys, k)
 		}
-		if stringInSlice(table_from.ColumnName, updated_keys) || stringInSlice(table_to.ColumnName, updated_keys) {
+		if StringInSlice(table_from.ColumnName, updated_keys) || StringInSlice(table_to.ColumnName, updated_keys) {
 			fmt.Println("change in relation must be design")
 		}
 

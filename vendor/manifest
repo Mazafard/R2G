@@ -1,0 +1,50 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/johnnadratowski/golang-neo4j-bolt-driver",
+			"repository": "https://github.com/johnnadratowski/golang-neo4j-bolt-driver",
+			"revision": "2387cc1f01254d3a0055e034f5716278a1f420c7",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/mattn/go-runewidth",
+			"repository": "https://github.com/mattn/go-runewidth",
+			"revision": "97311d9f7767e3d6f422ea06661bc2c7a19e8a5d",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/ziutek/mymysql/godrv",
+			"repository": "https://github.com/ziutek/mymysql",
+			"revision": "1d19cbf98d83564cc561192ae7d7183d795f7ac7",
+			"branch": "master",
+			"path": "/godrv"
+		},
+		{
+			"importpath": "github.com/ziutek/mymysql/mysql",
+			"repository": "https://github.com/ziutek/mymysql",
+			"revision": "1d19cbf98d83564cc561192ae7d7183d795f7ac7",
+			"branch": "master",
+			"path": "/mysql"
+		},
+		{
+			"importpath": "github.com/ziutek/mymysql/native",
+			"repository": "https://github.com/ziutek/mymysql",
+			"revision": "1d19cbf98d83564cc561192ae7d7183d795f7ac7",
+			"branch": "master",
+			"path": "/native"
+		},
+		{
+			"importpath": "gopkg.in/cheggaaa/pb.v1",
+			"repository": "https://gopkg.in/cheggaaa/pb.v1",
+			"revision": "657164d0228d6bebe316fdf725c69f131a50fb10",
+			"branch": "master"
+		},
+		{
+			"importpath": "gopkg.in/gorp.v1",
+			"repository": "https://gopkg.in/gorp.v1",
+			"revision": "c87af80f3cc5036b55b83d77171e156791085e2e",
+			"branch": "master"
+		}
+	]
+}

@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"strings"
@@ -64,7 +64,7 @@ var SystemConfig *Configuration
 
 func (configuration *Configuration) GetTableConfig(table *Table) *TableConfig {
 	for _, config := range configuration.TablesConfig {
-		if config.Name == table.name {
+		if config.Name == table.Name {
 			return config
 		}
 	}
@@ -73,7 +73,7 @@ func (configuration *Configuration) GetTableConfig(table *Table) *TableConfig {
 
 func (configuration *Configuration) GetRelationConfig(foreignKey *ForeignKey) *RelationConfig {
 	for _, config := range configuration.RelationsConfig {
-		if config.Table == foreignKey.Table.name && config.ReferenceTable == foreignKey.ReferenceTable.name {
+		if config.Table == foreignKey.Table.Name && config.ReferenceTable == foreignKey.ReferenceTable.Name {
 			return config
 		}
 	}
@@ -87,7 +87,7 @@ func InitConfiguration() {
 
 func (configuration *Configuration) InitDbConfig(tables map[string]*Table) {
 	for _, table := range tables {
-		config := configuration.findTableConfig(table.name)
+		config := configuration.findTableConfig(table.Name)
 		config.setupConfig(table)
 	}
 }
@@ -172,11 +172,11 @@ func (configuration *Configuration) findTableConfig(table string) *TableConfig {
 
 func (tableConfig *TableConfig) setupConfig(table *Table) {
 	if tableConfig.Name == "" {
-		tableConfig.Name = table.name
+		tableConfig.Name = table.Name
 	}
 
 	if tableConfig.Label == "" {
-		tableConfig.Label = strings.ToUpper(table.name)
+		tableConfig.Label = strings.ToUpper(table.Name)
 	}
 
 	if len(tableConfig.UniqueColumns) == 0 {

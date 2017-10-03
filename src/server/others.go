@@ -1,54 +1,14 @@
-package main
+package server
 
 import (
+	"strconv"
 	"fmt"
 	"gopkg.in/cheggaaa/pb.v1"
-	"strconv"
 	"math/rand"
-	"os"
-	"strings"
 )
 
-const DEBUG = true
 
 var ARGS_REQUESTED_TABLES = []string{}
-
-func main() {
-	InitConfiguration()
-	db := ConnectDatabase()
-	defer db.Close()
-	//
-	db.Init()
-	SystemConfig.InitDbConfig(db.Mysql.Tables)
-	//
-	args := []string{}
-	if len(os.Args) > 1 {
-		args = os.Args[1:]
-		for _, arg := range args {
-			if strings.HasPrefix(arg, "tables=") {
-				data := strings.Replace(arg, "tables=", "", 1)
-				for _, value := range strings.Split(data, ",") {
-					ARGS_REQUESTED_TABLES = append(ARGS_REQUESTED_TABLES, value)
-				}
-			}
-		}
-
-	} else {
-		args = []string{"Initial", "Listener"}
-	}
-
-	if stringInSlice("Initial", args) {
-		if stringInSlice("Listener", args) {
-			go R2G(db)
-		} else {
-			R2G(db)
-		}
-	}
-
-	if stringInSlice("Listener", args) {
-		RunCommand(db)
-	}
-}
 
 func R2G(db *DbMap) {
 
@@ -61,7 +21,7 @@ func R2G(db *DbMap) {
 	for _, table := range db.Mysql.Tables {
 
 		bar.Increment()
-		if stringInSlice(table.name, SystemConfig.SkipTables) || SystemConfig.GetTableConfig(table).IsManyToMany {
+		if StringInSlice(table.Name, SystemConfig.SkipTables) || SystemConfig.GetTableConfig(table).IsManyToMany {
 			continue
 		}
 
@@ -71,7 +31,7 @@ func R2G(db *DbMap) {
 
 	if len(ARGS_REQUESTED_TABLES) == 0 {
 		for _, table := range db.Mysql.Tables {
-			if stringInSlice(table.name, SystemConfig.SkipTables) {
+			if StringInSlice(table.Name, SystemConfig.SkipTables) {
 				continue
 			}
 
@@ -79,11 +39,11 @@ func R2G(db *DbMap) {
 		}
 	} else {
 		for _, table := range db.Mysql.Tables {
-			if stringInSlice(table.name, SystemConfig.SkipTables) {
+			if StringInSlice(table.Name, SystemConfig.SkipTables) {
 				continue
 			}
 
-			if stringInSlice(table.name, ARGS_REQUESTED_TABLES) {
+			if StringInSlice(table.Name, ARGS_REQUESTED_TABLES) {
 				insertData(db, table)
 			}
 		}
@@ -105,20 +65,20 @@ func createIndex(dbmap *DbMap, table *Table) {
 }
 
 func insertData(dbmap *DbMap, table *Table) {
-	paginated := table.getPaginated(SystemConfig.Limit)
+	paginated := table.GetPaginated(SystemConfig.Limit)
 
 	fmt.Println("****************************************************************************")
-	fmt.Println("Start to insert Table " + table.name + " | number of rows:" + strconv.Itoa(paginated.TotalItems))
+	fmt.Println("Start to insert Table " + table.Name + " | number of rows:" + strconv.Itoa(paginated.TotalItems))
 
 	bar := pb.StartNew(paginated.TotalPages)
 	bar.ShowBar = true
 	bar.SetWidth(80)
 	for paginated.Next() {
-		rows := table.GetRows(paginated.getLimitOffset())
+		rows := table.GetRows(paginated.GetLimitOffset())
 		saveToGraph(dbmap, table, rows, true)
 		bar.Increment()
 	}
-	bar.FinishPrint("End of insert Table " + table.name)
+	bar.FinishPrint("End of insert Table " + table.Name)
 }
 
 func saveToGraph(dbmap *DbMap, table *Table, rows []map[string]string, frist_try bool) {
@@ -164,18 +124,18 @@ func saveToGraph(dbmap *DbMap, table *Table, rows []map[string]string, frist_try
 }
 
 func RelationQuery(label string, table *Table, properties map[string]string) string {
-	if len(table.foreignKeys) != 2 {
+	if len(table.ForeignKeys) != 2 {
 		panic("ManyToMany tabels must has been only 2 foreign key !")
 	}
 
 	sets, property := table.GetSetAndProperty(label, properties)
 
-	table_from := table.foreignKeys[0]
+	table_from := table.ForeignKeys[0]
 	label_from := "nod" + RandStringRunes(5)
 	rows_from := table_from.ReferenceTable.GetFilteredRows(table_from.ReferenceColumnName + "='" + properties[table_from.ColumnName] + "'", -1, -1)
 	node_from := MergeQuery(label_from, table_from.ReferenceTable, rows_from[0], false)
 
-	table_to := table.foreignKeys[1]
+	table_to := table.ForeignKeys[1]
 	label_to := "nod" + RandStringRunes(5)
 	rows_to := table_to.ReferenceTable.GetFilteredRows(table_to.ReferenceColumnName + "='" + properties[table_to.ColumnName] + "'", -1, -1)
 	node_to := MergeQuery(label_to, table_to.ReferenceTable, rows_to[0], false)

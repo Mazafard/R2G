@@ -1,4 +1,4 @@
-package main
+package server
 
 var CacheDbMap  struct{
 	Tables []*Table

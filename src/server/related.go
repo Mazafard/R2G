@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"strings"
@@ -23,14 +23,14 @@ func (table *Table) GetSkipProperties() []string {
 }
 
 func (table *Table) IsUniqueProperty(key string) bool {
-	return stringInSlice(key, table.GetUniqueProperties())
+	return StringInSlice(key, table.GetUniqueProperties())
 }
 
 func (table *Table) IsSkipProperty(key string) bool {
-	return stringInSlice(key, table.GetSkipProperties())
+	return StringInSlice(key, table.GetSkipProperties())
 }
 
-func stringInSlice(str string, list []string) bool {
+func StringInSlice(str string, list []string) bool {
 	for _, v := range list {
 		if v == str {
 			return true
@@ -95,9 +95,9 @@ func (foreign *ForeignKey) GetRelationSetAndProperty(label string, tableProperti
 		tableName := data[0]
 		column := data[1]
 
-		if foreign.ReferenceTable.name == tableName {
+		if foreign.ReferenceTable.Name == tableName {
 			set += " " + label + "." + key + "='" + FixStringStyle(referenceProperties[column]) + "',"
-		} else if foreign.Table.name == tableName {
+		} else if foreign.Table.Name == tableName {
 			set += " " + label + "." + key + "='" + FixStringStyle(tableProperties[column]) + "',"
 		}
 	}
